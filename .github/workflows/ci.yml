@@ -1,0 +1,35 @@
+# Kjører automatiske sjekker på hver pull request og på main.
+# Jobben "sjekk" er påkrevd av rulesettet før en pull request kan merges.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  sjekk:
+    name: sjekk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer avhengigheter
+        run: npm ci
+
+      # expo-env.d.ts lages vanligvis av `expo start`, men trengs for typesjekken.
+      - name: Lag Expo-typer
+        run: echo '/// <reference types="expo/types" />' > expo-env.d.ts
+
+      - name: Typesjekk
+        run: npm run typecheck
+
+      - name: Bygg appen (Android og iOS)
+        run: |
+          npx expo export --platform android --output-dir dist-ci
+          npx expo export --platform ios --output-dir dist-ci

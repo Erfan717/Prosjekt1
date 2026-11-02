@@ -22,6 +22,15 @@ npm run typecheck   # sjekker TypeScript-feil
 npm run web         # åpner appen i nettleseren
 ```
 
+## Arbeidsflyt
+
+`main` er beskyttet, så all kode går via pull requests:
+
+1. Lag en ny gren: `git checkout -b min-endring`
+2. Gjør endringer, commit og push: `git push -u origin min-endring`
+3. Åpne en pull request på GitHub. CI kjører typesjekk og bygger appen automatisk.
+4. Når sjekken er grønn og alle kommentarer er løst, trykk «Squash and merge».
+
 ## Mappestruktur
 
 ```
