@@ -1,53 +1,107 @@
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { Kort, Skjerm, Topptekst } from '@/components/ui';
+import { Colors, Gradients, Radius, Spacing } from '@/constants/theme';
 
+// Foreløpig faste tall. Senere henter vi dem fra lagret fremgang.
+const dagerPaRad = 0;
 const statistikk = [
-  { etikett: 'Ord lært', verdi: '0' },
-  { etikett: 'Dager på rad', verdi: '0' },
-  { etikett: 'Øvelser fullført', verdi: '0' },
+  { etikett: 'Ord lært', verdi: 0, farge: Colors.dark.accent },
+  { etikett: 'Øvelser fullført', verdi: 0, farge: Colors.dark.accentCalm },
 ];
+const ukedager = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+// Hvilke dager denne uken du har øvd (mandag først).
+const ovdDager = [false, false, false, false, false, false, false];
 
 export default function FremgangSkjerm() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="subtitle">Fremgang</ThemedText>
-        <ThemedText themeColor="textSecondary">
-          Her ser du snart hvor mange nye ord du har tatt i bruk.
-        </ThemedText>
+    <Skjerm>
+      <Topptekst
+        etikett="Fremgang"
+        tittel="Litt hver dag"
+        tekst="Her ser du snart hvor mange nye ord du har tatt i bruk."
+      />
 
+      <Kort gradientCss={Gradients.varm}>
+        <ThemedText type="eyebrow" style={styles.lysEtikett}>
+          Dager på rad
+        </ThemedText>
+        <ThemedText type="stat" style={styles.stortTall}>
+          {dagerPaRad}
+        </ThemedText>
+        <View style={styles.uke}>
+          {ukedager.map((dag, i) => (
+            <View key={i} style={styles.dag}>
+              <View style={[styles.dagPrikk, ovdDager[i] && styles.dagPrikkAktiv]} />
+              <ThemedText type="small" style={styles.dagTekst}>
+                {dag}
+              </ThemedText>
+            </View>
+          ))}
+        </View>
+      </Kort>
+
+      <View style={styles.rutenett}>
         {statistikk.map((s) => (
-          <ThemedView key={s.etikett} type="backgroundElement" style={styles.kort}>
+          <Kort key={s.etikett} style={styles.rute}>
+            <ThemedText type="stat" style={{ color: s.farge }}>
+              {s.verdi}
+            </ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {s.etikett}
             </ThemedText>
-            <ThemedText type="subtitle">{s.verdi}</ThemedText>
-          </ThemedView>
+          </Kort>
         ))}
-      </SafeAreaView>
-    </ThemedView>
+      </View>
+
+      <ThemedText type="small" themeColor="textMuted" style={styles.fotnote}>
+        Små steg hver dag blir til store endringer.
+      </ThemedText>
+    </Skjerm>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
+  lysEtikett: {
+    color: 'rgba(255, 255, 255, 0.75)',
   },
-  safeArea: {
-    flex: 1,
-    maxWidth: MaxContentWidth,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
+  stortTall: {
+    fontSize: 64,
+    lineHeight: 70,
+    color: '#FFFFFF',
+  },
+  uke: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: Spacing.two,
+  },
+  dag: {
+    alignItems: 'center',
+    gap: Spacing.one + 2,
+  },
+  dagPrikk: {
+    width: 28,
+    height: 28,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  dagPrikkAktiv: {
+    backgroundColor: Colors.dark.accentWarm,
+  },
+  dagTekst: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  rutenett: {
+    flexDirection: 'row',
     gap: Spacing.three,
   },
-  kort: {
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
+  rute: {
+    flex: 1,
+    gap: Spacing.one,
+  },
+  fotnote: {
+    textAlign: 'center',
+    marginTop: Spacing.three,
   },
 });

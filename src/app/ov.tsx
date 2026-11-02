@@ -1,56 +1,75 @@
-import { ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Brikke, Kort, Skjerm, Topptekst } from '@/components/ui';
+import { Colors, Gradients, Radius, Spacing } from '@/constants/theme';
 import { scenarioer } from '@/data/scenarioer';
+
+// Hvert scenario får sin egen rolige aksentfarge, i rekkefølge.
+const aksenter = [Colors.dark.accent, Colors.dark.accentCalm, Colors.dark.accentWarm];
 
 export default function OvSkjerm() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.innhold}>
-          <ThemedText type="subtitle">Øv på å snakke</ThemedText>
-          <ThemedText themeColor="textSecondary">
-            Velg en situasjon. Snart kan du svare muntlig og få tilbakemelding på ordvalg og
-            struktur.
-          </ThemedText>
+    <Skjerm>
+      <Topptekst
+        etikett="Øv"
+        tittel="Finn stemmen din"
+        tekst="Velg en situasjon. Snart kan du svare muntlig og få tilbakemelding på ordvalg og struktur."
+      />
 
-          {scenarioer.map((scenario) => (
-            <ThemedView key={scenario.id} type="backgroundElement" style={styles.kort}>
-              <ThemedText type="smallBold">{scenario.tittel}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {scenario.beskrivelse}
+      <Kort gradientCss={Gradients.rolig}>
+        <ThemedText type="eyebrow" themeColor="accentCalm">
+          Dagens tips
+        </ThemedText>
+        <ThemedText style={styles.tips}>
+          Ta en pause før du svarer. Et rolig «hmm, godt spørsmål» gir deg tid og virker trygt.
+        </ThemedText>
+      </Kort>
+
+      {scenarioer.map((scenario, i) => {
+        const farge = aksenter[i % aksenter.length];
+        return (
+          <Kort key={scenario.id}>
+            <View style={styles.hode}>
+              <View style={[styles.prikk, { backgroundColor: farge }]} />
+              <ThemedText type="subtitle" style={styles.tittel}>
+                {scenario.tittel}
               </ThemedText>
+              <Brikke>Snart</Brikke>
+            </View>
+            <ThemedText type="small" themeColor="textSecondary">
+              {scenario.beskrivelse}
+            </ThemedText>
+            <View style={[styles.oppgave, { borderLeftColor: farge }]}>
               <ThemedText>{scenario.oppgave}</ThemedText>
-            </ThemedView>
-          ))}
-        </ScrollView>
-      </SafeAreaView>
-    </ThemedView>
+            </View>
+          </Kort>
+        );
+      })}
+    </Skjerm>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  tips: {
+    color: 'rgba(255, 255, 255, 0.88)',
+  },
+  hode: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.two + 2,
   },
-  safeArea: {
+  prikk: {
+    width: 10,
+    height: 10,
+    borderRadius: Radius.pill,
+  },
+  tittel: {
     flex: 1,
-    maxWidth: MaxContentWidth,
   },
-  innhold: {
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.four,
-    gap: Spacing.three,
-  },
-  kort: {
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
-    gap: Spacing.one,
+  oppgave: {
+    marginTop: Spacing.one,
+    paddingLeft: Spacing.three,
+    borderLeftWidth: 2,
   },
 });

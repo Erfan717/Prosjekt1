@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { AppState, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppState, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Brikke, Kort, Skjerm } from '@/components/ui';
+import { Colors, Gradients, Spacing } from '@/constants/theme';
 import { dagensOrd } from '@/data/ord';
+
+const datoFormat = new Intl.DateTimeFormat('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' });
 
 export default function DagensOrdSkjerm() {
   const [dato, setDato] = useState(() => new Date());
@@ -21,64 +22,86 @@ export default function DagensOrdSkjerm() {
   const ord = dagensOrd(dato);
 
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.innhold}>
-          <ThemedText type="smallBold" themeColor="textSecondary">
-            DAGENS ORD
-          </ThemedText>
-          <ThemedText type="subtitle">{ord.ord}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {ord.ordklasse}
-          </ThemedText>
+    <Skjerm>
+      <ThemedText type="eyebrow" themeColor="textMuted">
+        {datoFormat.format(dato)}
+      </ThemedText>
 
-          <ThemedView type="backgroundElement" style={styles.kort}>
-            <ThemedText type="smallBold">Betydning</ThemedText>
-            <ThemedText>{ord.betydning}</ThemedText>
-          </ThemedView>
+      <Kort gradientCss={Gradients.helt} style={styles.helt}>
+        <ThemedText type="eyebrow" style={styles.lysEtikett}>
+          Dagens ord
+        </ThemedText>
+        <ThemedText type="display">{ord.ord}</ThemedText>
+        <View style={styles.rad}>
+          <Brikke farge={Colors.dark.text}>{ord.ordklasse}</Brikke>
+        </View>
+        <ThemedText style={styles.heltTekst}>{ord.betydning}</ThemedText>
+      </Kort>
 
-          <ThemedView type="backgroundElement" style={styles.kort}>
-            <ThemedText type="smallBold">Eksempel</ThemedText>
-            <ThemedText style={styles.kursiv}>«{ord.eksempel}»</ThemedText>
-          </ThemedView>
+      <Kort>
+        <ThemedText type="eyebrow" themeColor="accent">
+          Eksempel
+        </ThemedText>
+        <ThemedText type="subtitle" style={styles.sitat}>
+          «{ord.eksempel}»
+        </ThemedText>
+      </Kort>
 
-          <ThemedView type="backgroundElement" style={styles.kort}>
-            <ThemedText type="smallBold">Synonymer</ThemedText>
-            <ThemedText>{ord.synonymer.join(', ')}</ThemedText>
-          </ThemedView>
+      <Kort>
+        <ThemedText type="eyebrow" themeColor="accentCalm">
+          Synonymer
+        </ThemedText>
+        <View style={styles.rad}>
+          {ord.synonymer.map((s) => (
+            <Brikke key={s} farge={Colors.dark.text}>
+              {s}
+            </Brikke>
+          ))}
+        </View>
+      </Kort>
 
-          <ThemedView type="backgroundElement" style={styles.kort}>
-            <ThemedText type="smallBold">Bruk det i stedet for</ThemedText>
-            <ThemedText>{ord.erstatter.map((o) => `«${o}»`).join(', ')}</ThemedText>
-          </ThemedView>
-        </ScrollView>
-      </SafeAreaView>
-    </ThemedView>
+      <Kort>
+        <ThemedText type="eyebrow" themeColor="accentWarm">
+          Bruk det i stedet for
+        </ThemedText>
+        <View style={styles.rad}>
+          {ord.erstatter.map((o) => (
+            <Brikke key={o} farge={Colors.dark.textMuted}>
+              <ThemedText type="small" themeColor="textMuted" style={styles.overstreket}>
+                {o}
+              </ThemedText>
+            </Brikke>
+          ))}
+        </View>
+      </Kort>
+    </Skjerm>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  safeArea: {
-    flex: 1,
-    maxWidth: MaxContentWidth,
-  },
-  innhold: {
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.four,
+  helt: {
+    paddingVertical: Spacing.five,
     gap: Spacing.three,
   },
-  kort: {
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
-    gap: Spacing.one,
+  lysEtikett: {
+    color: 'rgba(255, 255, 255, 0.75)',
   },
-  kursiv: {
+  heltTekst: {
+    color: 'rgba(255, 255, 255, 0.88)',
+    fontSize: 17,
+    lineHeight: 26,
+  },
+  rad: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  sitat: {
     fontStyle: 'italic',
+    fontWeight: 400,
+    lineHeight: 30,
+  },
+  overstreket: {
+    textDecorationLine: 'line-through',
   },
 });
