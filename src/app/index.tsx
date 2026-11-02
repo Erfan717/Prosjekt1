@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AppState, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -7,7 +8,17 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { dagensOrd } from '@/data/ord';
 
 export default function DagensOrdSkjerm() {
-  const ord = dagensOrd();
+  const [dato, setDato] = useState(() => new Date());
+
+  // Oppdater datoen når appen kommer tilbake i forgrunnen, så et nytt døgn gir nytt ord.
+  useEffect(() => {
+    const abonnement = AppState.addEventListener('change', (status) => {
+      if (status === 'active') setDato(new Date());
+    });
+    return () => abonnement.remove();
+  }, []);
+
+  const ord = dagensOrd(dato);
 
   return (
     <ThemedView style={styles.container}>

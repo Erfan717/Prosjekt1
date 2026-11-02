@@ -74,7 +74,10 @@ export const ordliste: Ord[] = [
 
 /** Velger samme ord for alle brukere på en gitt dag. */
 export function dagensOrd(dato: Date = new Date()): Ord {
-  const startAvAret = new Date(dato.getFullYear(), 0, 0);
-  const dagNummer = Math.floor((dato.getTime() - startAvAret.getTime()) / 86_400_000);
+  // Bruker kalenderdatoen (år, måned, dag) i stedet for millisekunder i lokal tid,
+  // slik at sommertid ikke flytter ordbyttet bort fra midnatt.
+  const iDag = Date.UTC(dato.getFullYear(), dato.getMonth(), dato.getDate());
+  const nyttar = Date.UTC(dato.getFullYear(), 0, 1);
+  const dagNummer = (iDag - nyttar) / 86_400_000;
   return ordliste[dagNummer % ordliste.length];
 }
