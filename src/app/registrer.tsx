@@ -136,9 +136,6 @@ export default function RegistrerSkjerm() {
               </ThemedText>
             </Pressable>
 
-            <ThemedText type="small" themeColor="textMuted" style={styles.finskrift}>
-              Etterpå stiller vi deg noen korte spørsmål om hva du vil bli bedre på.
-            </ThemedText>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -264,8 +261,5 @@ const styles = StyleSheet.create({
   },
   knappTekst: {
     color: farger.text,
-  },
-  finskrift: {
-    textAlign: 'center',
   },
 });
