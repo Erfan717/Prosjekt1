@@ -7,21 +7,56 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+/**
+ * Mørk, rolig palett inspirert av «personal growth»-apper som Opal og Soundscape.
+ * Appen er alltid mørk, så lys og mørk modus bruker de samme fargene.
+ */
+const Palett = {
+  /** Dyp blekk-lilla bakgrunn bak alt */
+  background: '#0B0A14',
+  /** Glass-kort: litt lysere enn bakgrunnen */
+  backgroundElement: 'rgba(255, 255, 255, 0.05)',
+  backgroundSelected: 'rgba(255, 255, 255, 0.12)',
+  /** Tynn kant rundt kort */
+  border: 'rgba(255, 255, 255, 0.08)',
+  text: '#F4F1FA',
+  textSecondary: '#A9A4BF',
+  textMuted: '#6F6A87',
+  /** Hovedaksent: myk lavendel */
+  accent: '#B9A6FF',
+  /** Varm aksent: fersken, brukes til fremgang og streaks */
+  accentWarm: '#FFB38A',
+  /** Rolig aksent: mint, brukes til øving */
+  accentCalm: '#7FD8C4',
+  /** Tekst oppå aksentfarger */
+  onAccent: '#14111F',
+} as const;
+
 export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
+  light: Palett,
+  dark: Palett,
+} as const;
+
+/**
+ * Gradienter skrevet som CSS. Brukes via `gradient()` i `@/components/gradient`.
+ */
+export const Gradients = {
+  /** Svak lilla glød øverst på skjermen som toner ut i mørket */
+  skjerm:
+    'radial-gradient(120% 60% at 20% 0%, rgba(124, 92, 255, 0.35) 0%, rgba(124, 92, 255, 0) 70%), radial-gradient(90% 50% at 100% 15%, rgba(255, 140, 120, 0.16) 0%, rgba(255, 140, 120, 0) 70%)',
+  /** Hovedkort med lavendel → rosa → fersken */
+  helt: 'linear-gradient(135deg, #3B2A78 0%, #5B3A8C 45%, #8A4F7D 75%, #B8687A 100%)',
+  /** Rolig mint-blå for øving */
+  rolig: 'linear-gradient(135deg, #12352F 0%, #1C3F4F 100%)',
+  /** Varm for fremgang */
+  varm: 'linear-gradient(135deg, #4A2A3E 0%, #7A3F3A 60%, #A65A3A 100%)',
+} as const;
+
+export const Radius = {
+  small: 12,
+  medium: 20,
+  large: 28,
+  pill: 999,
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
