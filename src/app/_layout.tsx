@@ -51,6 +51,7 @@ function Navigasjon() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark.background } }}>
       <Stack.Protected guard={innlogget && harMaal}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="ovelse" />
       </Stack.Protected>
       <Stack.Protected guard={innlogget && !harMaal}>
         <Stack.Screen name="maal" />
