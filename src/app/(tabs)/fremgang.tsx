@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Kort, Skjerm, Topptekst } from '@/components/ui';
 import { Colors, Gradients, Radius, Spacing } from '@/constants/theme';
+import { useBruker } from '@/hooks/bruker';
 import { useFremgang } from '@/hooks/fremgang';
 import { dagerPaRad, datoNokkel, denneUken, lengsteRekke } from '@/lib/streak';
 
@@ -17,6 +18,7 @@ function streakTekst(rekke: number, gjortIDag: boolean): string {
 }
 
 export default function FremgangSkjerm() {
+  const { loggUt } = useBruker();
   const { aktiveDager, laerteOrd, ovelserFullfort } = useFremgang();
   const [iDag, setIDag] = useState(() => new Date());
 
@@ -88,6 +90,13 @@ export default function FremgangSkjerm() {
       <ThemedText type="small" themeColor="textMuted" style={styles.fotnote}>
         Små steg hver dag blir til store endringer.
       </ThemedText>
+
+      {/* Sletter alt som er lagret på telefonen og sender deg tilbake til registreringen. */}
+      <Pressable onPress={loggUt} accessibilityRole="button" style={styles.loggUt}>
+        <ThemedText type="small" themeColor="textSecondary">
+          Logg ut
+        </ThemedText>
+      </Pressable>
     </Skjerm>
   );
 }
@@ -142,5 +151,10 @@ const styles = StyleSheet.create({
   fotnote: {
     textAlign: 'center',
     marginTop: Spacing.three,
+  },
+  loggUt: {
+    alignSelf: 'center',
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
   },
 });

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Felles lagring på telefonen (AsyncStorage).
@@ -20,10 +20,20 @@ export const Nokler = {
 
 export type Nokkel = (typeof Nokler)[keyof typeof Nokler];
 
+// Alle lese- og skriveoperasjoner står i kø og kjøres én etter én, i den rekkefølgen
+// de ble startet. Da kan for eksempel ikke en utlogging slette en ny registrering
+// som ble lagret rett etterpå.
+let ko: Promise<unknown> = Promise.resolve();
+function iKo<T>(oppgave: () => Promise<T>): Promise<T> {
+  const resultat = ko.then(oppgave);
+  ko = resultat.catch(() => undefined);
+  return resultat;
+}
+
 /** Henter en lagret verdi. Gir `null` hvis ingenting er lagret eller dataene er ødelagt. */
 export async function hent<T>(nokkel: Nokkel): Promise<T | null> {
   try {
-    const tekst = await AsyncStorage.getItem(nokkel);
+    const tekst = await iKo(() => AsyncStorage.getItem(nokkel));
     return tekst === null ? null : (JSON.parse(tekst) as T);
   } catch (feil) {
     console.warn(`Klarte ikke å lese «${nokkel}» fra lagringen`, feil);
@@ -34,7 +44,7 @@ export async function hent<T>(nokkel: Nokkel): Promise<T | null> {
 /** Lagrer en verdi (overskriver det som lå der fra før). */
 export async function lagre<T>(nokkel: Nokkel, verdi: T): Promise<void> {
   try {
-    await AsyncStorage.setItem(nokkel, JSON.stringify(verdi));
+    await iKo(() => AsyncStorage.setItem(nokkel, JSON.stringify(verdi)));
   } catch (feil) {
     console.warn(`Klarte ikke å lagre «${nokkel}»`, feil);
   }
@@ -43,7 +53,7 @@ export async function lagre<T>(nokkel: Nokkel, verdi: T): Promise<void> {
 /** Sletter én verdi. */
 export async function fjern(nokkel: Nokkel): Promise<void> {
   try {
-    await AsyncStorage.removeItem(nokkel);
+    await iKo(() => AsyncStorage.removeItem(nokkel));
   } catch (feil) {
     console.warn(`Klarte ikke å slette «${nokkel}»`, feil);
   }
@@ -52,7 +62,7 @@ export async function fjern(nokkel: Nokkel): Promise<void> {
 /** Sletter alt appen har lagret, f.eks. ved utlogging. */
 export async function fjernAlt(): Promise<void> {
   try {
-    await AsyncStorage.multiRemove(Object.values(Nokler));
+    await iKo(() => AsyncStorage.multiRemove(Object.values(Nokler)));
   } catch (feil) {
     console.warn('Klarte ikke å slette lagringen', feil);
   }
@@ -71,12 +81,15 @@ export async function fjernAlt(): Promise<void> {
 export function useLagret<T>(nokkel: Nokkel, standard: T) {
   const [verdi, setVerdi] = useState<T>(standard);
   const [laster, setLaster] = useState(true);
+  // Blir `true` første gang verdien endres fra appen. Da skal den lagres, og en
+  // lagret verdi som kommer inn senere skal ikke overskrive endringen.
+  const endret = useRef(false);
 
   useEffect(() => {
     let aktiv = true;
     hent<T>(nokkel).then((lagret) => {
       if (!aktiv) return;
-      if (lagret !== null) setVerdi(lagret);
+      if (lagret !== null && !endret.current) setVerdi(lagret);
       setLaster(false);
     });
     return () => {
@@ -84,16 +97,15 @@ export function useLagret<T>(nokkel: Nokkel, standard: T) {
     };
   }, [nokkel]);
 
-  const oppdater = useCallback(
-    (ny: T | ((forrige: T) => T)) => {
-      setVerdi((forrige) => {
-        const neste = typeof ny === 'function' ? (ny as (forrige: T) => T)(forrige) : ny;
-        void lagre(nokkel, neste);
-        return neste;
-      });
-    },
-    [nokkel],
-  );
+  // Lagre etter at React har tatt i bruk den nye verdien.
+  useEffect(() => {
+    if (endret.current) void lagre(nokkel, verdi);
+  }, [nokkel, verdi]);
+
+  const oppdater = useCallback((ny: T | ((forrige: T) => T)) => {
+    endret.current = true;
+    setVerdi(ny as T | ((forrige: T) => T));
+  }, []);
 
   return [verdi, oppdater, laster] as const;
 }
