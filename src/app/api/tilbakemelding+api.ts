@@ -72,7 +72,7 @@ export async function POST(request: Request): Promise<Response> {
     transkripsjon = await taleTilTekst(lyd, openaiNokkel);
   } catch (e) {
     console.error('Tale-til-tekst feilet', e);
-    return Response.json({ feil: 'Klarte ikke å gjøre talen om til tekst. Prøv igjen.' }, { status: 502 });
+    return Response.json({ feil: feilmeldingForTale(e) }, { status: 502 });
   }
   if (transkripsjon.trim().length === 0) {
     return Response.json({ feil: 'Jeg hørte ingenting. Prøv å snakke litt nærmere mikrofonen.' }, { status: 422 });
@@ -91,6 +91,28 @@ export async function POST(request: Request): Promise<Response> {
   return Response.json({ transkripsjon, ai } satisfies TilbakemeldingSvar);
 }
 
+class TjenesteFeil extends Error {
+  constructor(
+    readonly status: number,
+    readonly tekst: string,
+  ) {
+    super(`${status} ${tekst}`);
+  }
+}
+
+/** Gjør feil fra tale-til-tekst om til en melding som sier hva du kan gjøre. */
+function feilmeldingForTale(e: unknown): string {
+  if (e instanceof TjenesteFeil) {
+    if (e.status === 401) return 'OpenAI-nøkkelen ble ikke godtatt. Sjekk OPENAI_API_KEY i .env.local.';
+    if (e.status === 429 && e.tekst.includes('insufficient_quota')) {
+      return 'OpenAI-kontoen er tom for kreditt. Fyll på under Billing på platform.openai.com.';
+    }
+    if (e.status === 429) return 'For mange forsøk på kort tid. Vent litt og prøv igjen.';
+    if (e.status === 400) return 'OpenAI godtok ikke lydfilen. Se terminalen for detaljer.';
+  }
+  return 'Klarte ikke å gjøre talen om til tekst. Prøv igjen.';
+}
+
 async function taleTilTekst(lyd: Blob, nokkel: string): Promise<string> {
   const filnavn = lyd.type.includes('webm') ? 'opptak.webm' : 'opptak.m4a';
   const data = new FormData();
@@ -103,7 +125,7 @@ async function taleTilTekst(lyd: Blob, nokkel: string): Promise<string> {
     headers: { Authorization: `Bearer ${nokkel}` },
     body: data,
   });
-  if (!svar.ok) throw new Error(`${svar.status} ${await svar.text()}`);
+  if (!svar.ok) throw new TjenesteFeil(svar.status, await svar.text());
   const json = (await svar.json()) as { text?: string };
   return json.text ?? '';
 }
