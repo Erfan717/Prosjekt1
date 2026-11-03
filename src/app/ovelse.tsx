@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +17,7 @@ import { Brikke, Kort, Topptekst } from '@/components/ui';
 import { Colors, Gradients, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { dagensOrd } from '@/data/ord';
 import { scenarioer } from '@/data/scenarioer';
+import { useFremgang } from '@/hooks/fremgang';
 import { giTilbakemelding, type Tilbakemelding } from '@/utils/tilbakemelding';
 
 const farger = Colors.dark;
@@ -35,12 +36,21 @@ export default function OvelseSkjerm() {
   const [fokus, setFokus] = useState(false);
   const [resultat, setResultat] = useState<Tilbakemelding | null>(null);
 
+  const { registrerOvelse } = useFremgang();
+  // En øvelse teller bare én gang, selv om du sjekker flere ganger.
+  const talt = useRef(false);
+
   const kanSende = tekst.trim().length > 0;
 
   function sjekk() {
     if (!kanSende) return;
-    // TODO: Lagre forsøket, så det teller på fremgangssiden.
-    setResultat(giTilbakemelding(tekst, ord, type));
+    const tilbakemelding = giTilbakemelding(tekst, ord, type);
+    setResultat(tilbakemelding);
+    // Øvelsen er fullført når dagens ord er brukt. Da teller den på fremgangssiden og i streaken.
+    if (tilbakemelding.brukteOrdet && !talt.current) {
+      talt.current = true;
+      registrerOvelse();
+    }
   }
 
   function tilbake() {
