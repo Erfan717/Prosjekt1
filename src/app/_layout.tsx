@@ -1,9 +1,9 @@
-import { DarkTheme, ThemeProvider, type Theme } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
 import { Colors } from '@/constants/theme';
+import { BrukerProvider, useBruker } from '@/hooks/bruker';
 
 // Appen er alltid mørk. Vi bygger på React Navigation sitt mørke tema med våre farger.
 const morktTema: Theme = {
@@ -20,11 +20,33 @@ const morktTema: Theme = {
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
+export default function RootLayout() {
   return (
     <ThemeProvider value={morktTema}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+      <BrukerProvider>
+        <AnimatedSplashOverlay />
+        <Navigasjon />
+      </BrukerProvider>
     </ThemeProvider>
+  );
+}
+
+/**
+ * Viser registreringen til man har en bruker, og selve appen (fanene) etterpå.
+ * `Stack.Protected` sender deg automatisk til riktig side når `guard` endrer seg.
+ */
+function Navigasjon() {
+  const { bruker } = useBruker();
+  const innlogget = bruker !== null;
+
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark.background } }}>
+      <Stack.Protected guard={innlogget}>
+        <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={!innlogget}>
+        <Stack.Screen name="registrer" />
+      </Stack.Protected>
+    </Stack>
   );
 }
