@@ -19,6 +19,7 @@ import { Colors, Gradients, MaxContentWidth, Radius, Spacing } from '@/constants
 import { dagensOrd } from '@/data/ord';
 import { scenarioer } from '@/data/scenarioer';
 import { useFremgang } from '@/hooks/fremgang';
+import { datoNokkel } from '@/lib/streak';
 import { giTilbakemelding, type Tilbakemelding } from '@/utils/tilbakemelding';
 
 const farger = Colors.dark;
@@ -40,8 +41,8 @@ export default function OvelseSkjerm() {
   const [resultat, setResultat] = useState<Tilbakemelding | null>(null);
 
   const { registrerOvelse } = useFremgang();
-  // En øvelse teller bare én gang, selv om du sjekker flere ganger.
-  const talt = useRef(false);
+  // En øvelse teller bare én gang per dag, selv om du sjekker flere ganger.
+  const taltDag = useRef<string | null>(null);
 
   const kanSende = tekst.trim().length > 0;
 
@@ -50,8 +51,9 @@ export default function OvelseSkjerm() {
     const tilbakemelding = giTilbakemelding(tekst, ord, type);
     setResultat(tilbakemelding);
     // Øvelsen er fullført når dagens ord er brukt. Da teller den på fremgangssiden og i streaken.
-    if (tilbakemelding.brukteOrdet && !talt.current) {
-      talt.current = true;
+    const iDag = datoNokkel(new Date());
+    if (tilbakemelding.brukteOrdet && taltDag.current !== iDag) {
+      taltDag.current = iDag;
       registrerOvelse();
     }
   }
