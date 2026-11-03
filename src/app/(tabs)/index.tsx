@@ -5,11 +5,13 @@ import { ThemedText } from '@/components/themed-text';
 import { LartOrdKnapp } from '@/components/lart-ord-knapp';
 import { Brikke, Kort, Skjerm } from '@/components/ui';
 import { Colors, Gradients, Spacing } from '@/constants/theme';
-import { dagensOrd } from '@/data/ord';
+import { dagensOrd, temaNavn } from '@/data/ord';
+import { useBruker } from '@/hooks/bruker';
 
 const datoFormat = new Intl.DateTimeFormat('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' });
 
 export default function DagensOrdSkjerm() {
+  const { bruker } = useBruker();
   const [dato, setDato] = useState(() => new Date());
 
   // Oppdater datoen når appen kommer tilbake i forgrunnen, så et nytt døgn gir nytt ord.
@@ -20,7 +22,7 @@ export default function DagensOrdSkjerm() {
     return () => abonnement.remove();
   }, []);
 
-  const ord = dagensOrd(dato);
+  const { ord, eksempel, tema, tips } = dagensOrd(dato, bruker?.maal);
 
   return (
     <Skjerm>
@@ -35,6 +37,7 @@ export default function DagensOrdSkjerm() {
         <ThemedText type="display">{ord.ord}</ThemedText>
         <View style={styles.rad}>
           <Brikke farge={Colors.dark.text}>{ord.ordklasse}</Brikke>
+          {tema ? <Brikke farge={Colors.dark.text}>Valgt for deg: {temaNavn[tema]}</Brikke> : null}
         </View>
         <ThemedText style={styles.heltTekst}>{ord.betydning}</ThemedText>
       </Kort>
@@ -44,9 +47,18 @@ export default function DagensOrdSkjerm() {
           Eksempel
         </ThemedText>
         <ThemedText type="subtitle" style={styles.sitat}>
-          «{ord.eksempel}»
+          «{eksempel}»
         </ThemedText>
       </Kort>
+
+      {tips ? (
+        <Kort>
+          <ThemedText type="eyebrow" themeColor="accent">
+            Tips for deg
+          </ThemedText>
+          <ThemedText themeColor="textSecondary">{tips}</ThemedText>
+        </Kort>
+      ) : null}
 
       <Kort>
         <ThemedText type="eyebrow" themeColor="accentCalm">
