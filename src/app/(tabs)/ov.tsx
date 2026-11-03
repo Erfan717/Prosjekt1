@@ -7,11 +7,13 @@ import { Brikke, Kort, Skjerm, Topptekst } from '@/components/ui';
 import { Colors, Gradients, Radius, Spacing } from '@/constants/theme';
 import { dagensOrd } from '@/data/ord';
 import { scenarioer } from '@/data/scenarioer';
+import { useBruker } from '@/hooks/bruker';
 
 // Hvert scenario får sin egen rolige aksentfarge, i rekkefølge.
 const aksenter = [Colors.dark.accent, Colors.dark.accentCalm, Colors.dark.accentWarm];
 
 export default function OvSkjerm() {
+  const { bruker } = useBruker();
   const [dato, setDato] = useState(() => new Date());
 
   // Oppdater datoen når appen kommer tilbake i forgrunnen, så kortet viser samme ord som øvelsen.
@@ -22,7 +24,7 @@ export default function OvSkjerm() {
     return () => abonnement.remove();
   }, []);
 
-  const ord = dagensOrd(dato);
+  const { ord } = dagensOrd(dato, bruker?.maal);
 
   return (
     <Skjerm>
