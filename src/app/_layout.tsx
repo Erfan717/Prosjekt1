@@ -36,7 +36,11 @@ export default function RootLayout() {
  * `Stack.Protected` sender deg automatisk til riktig side når `guard` endrer seg.
  */
 function Navigasjon() {
-  const { bruker } = useBruker();
+  const { bruker, laster } = useBruker();
+
+  // Vent til vi vet om noen er lagret, så registreringen ikke blinker forbi.
+  if (laster) return null;
+
   const innlogget = bruker !== null;
   const harMaal = bruker?.maal !== undefined;
 
