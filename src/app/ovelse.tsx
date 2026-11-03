@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,12 +11,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useBruker } from '@/hooks/bruker';
 import { gradient } from '@/components/gradient';
 import { ThemedText } from '@/components/themed-text';
 import { Brikke, Kort, Topptekst } from '@/components/ui';
 import { Colors, Gradients, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { dagensOrd } from '@/data/ord';
 import { scenarioer } from '@/data/scenarioer';
+import { useFremgang } from '@/hooks/fremgang';
+import { datoNokkel } from '@/lib/streak';
 import { giTilbakemelding, type Tilbakemelding } from '@/utils/tilbakemelding';
 
 const farger = Colors.dark;
@@ -29,18 +32,30 @@ export default function OvelseSkjerm() {
   const { scenario: scenarioId } = useLocalSearchParams<{ scenario?: string }>();
   const scenario = scenarioer.find((s) => s.id === scenarioId);
   const type = scenario ? 'scenario' : 'setning';
-  const [ord] = useState(() => dagensOrd());
+  const { bruker } = useBruker();
+  // Samme ord som på «Dagens ord», tilpasset brukerens mål.
+  const [{ ord, eksempel }] = useState(() => dagensOrd(new Date(), bruker?.maal));
 
   const [tekst, setTekst] = useState('');
   const [fokus, setFokus] = useState(false);
   const [resultat, setResultat] = useState<Tilbakemelding | null>(null);
 
+  const { registrerOvelse } = useFremgang();
+  // En øvelse teller bare én gang per dag, selv om du sjekker flere ganger.
+  const taltDag = useRef<string | null>(null);
+
   const kanSende = tekst.trim().length > 0;
 
   function sjekk() {
     if (!kanSende) return;
-    // TODO: Lagre forsøket, så det teller på fremgangssiden.
-    setResultat(giTilbakemelding(tekst, ord, type));
+    const tilbakemelding = giTilbakemelding(tekst, ord, type);
+    setResultat(tilbakemelding);
+    // Øvelsen er fullført når dagens ord er brukt. Da teller den på fremgangssiden og i streaken.
+    const iDag = datoNokkel(new Date());
+    if (tilbakemelding.brukteOrdet && taltDag.current !== iDag) {
+      taltDag.current = iDag;
+      registrerOvelse();
+    }
   }
 
   function tilbake() {
@@ -110,7 +125,7 @@ export default function OvelseSkjerm() {
               />
             </View>
 
-            {resultat ? <Resultat resultat={resultat} eksempel={ord.eksempel} /> : null}
+            {resultat ? <Resultat resultat={resultat} eksempel={eksempel} /> : null}
 
             <Pressable
               onPress={sjekk}
