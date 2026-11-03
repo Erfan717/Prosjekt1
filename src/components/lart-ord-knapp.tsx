@@ -9,8 +9,8 @@ const farger = Colors.dark;
 
 /** Knapp under dagens ord: marker ordet som lært, så teller dagen i streaken. */
 export function LartOrdKnapp({ ord }: { ord: string }) {
-  const { harLaert, registrerOrd, laster } = useFremgang();
-  const lart = harLaert(ord);
+  const { harLaertIDag, registrerOrd, laster } = useFremgang();
+  const lart = harLaertIDag();
 
   return (
     <Pressable
@@ -24,7 +24,7 @@ export function LartOrdKnapp({ ord }: { ord: string }) {
         pressed && styles.knappTrykket,
       ]}>
       <ThemedText type="subtitle" style={lart ? styles.tekstFerdig : styles.tekst}>
-        {lart ? '✓ Lært' : 'Jeg har lært ordet'}
+        {lart ? '✓ Lært i dag' : 'Jeg har lært ordet'}
       </ThemedText>
     </Pressable>
   );

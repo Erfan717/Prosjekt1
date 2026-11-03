@@ -12,6 +12,8 @@ export type FremgangData = {
   laerteOrd: string[];
   /** Hvor mange øvelser du har fullført totalt. */
   ovelserFullfort: number;
+  /** Siste dag du markerte dagens ord som lært, som `ÅÅÅÅ-MM-DD`. */
+  sisteOrdDag?: string;
 };
 
 const tom: FremgangData = { aktiveDager: [], laerteOrd: [], ovelserFullfort: 0 };
@@ -19,9 +21,13 @@ const tom: FremgangData = { aktiveDager: [], laerteOrd: [], ovelserFullfort: 0 }
 type FremgangKontekst = FremgangData & {
   /** `true` til den lagrede fremgangen er hentet. */
   laster: boolean;
-  /** Om ordet allerede er markert som lært. */
-  harLaert: (ord: string) => boolean;
-  /** Markerer et ord som lært og teller dagen med i streaken. */
+  /** Om du allerede har markert dagens ord som lært i dag. */
+  harLaertIDag: () => boolean;
+  /**
+   * Markerer et ord som lært og teller dagen med i streaken.
+   * Ordlisten går i ring, så et ord du har lært før kan komme igjen. Da teller dagen,
+   * men «Ord lært» øker ikke.
+   */
   registrerOrd: (ord: string) => void;
   /** Teller en fullført øvelse og dagen med i streaken. */
   registrerOvelse: () => void;
@@ -54,11 +60,12 @@ export function FremgangProvider({ children }: { children: ReactNode }) {
     () => ({
       ...data,
       laster,
-      harLaert: (ord) => data.laerteOrd.includes(ord),
+      harLaertIDag: () => data.sisteOrdDag === datoNokkel(new Date()),
       registrerOrd: (ord) =>
         setData((forrige) => ({
           ...forrige,
           aktiveDager: medIDag(forrige.aktiveDager),
+          sisteOrdDag: datoNokkel(new Date()),
           laerteOrd: forrige.laerteOrd.includes(ord) ? forrige.laerteOrd : [...forrige.laerteOrd, ord],
         })),
       registrerOvelse: () =>
