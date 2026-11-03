@@ -448,10 +448,10 @@ export function dagensOrd(dato: Date = new Date(), maal?: MaalSvar): DagensOrd {
   }
 
   // Ord som passer til minst én situasjon. Ord som også hjelper mot en utfordring
-  // legges inn én gang til bakerst, så de dukker opp oftere uten å komme to dager på rad.
+  // legges inn én gang til, så de dukker opp oftere.
   const passer = ordliste.filter((ord) => ord.temaer.some((t) => temaer.includes(t)));
   const hjelper = passer.filter((ord) => ord.hjelperMot?.some((u) => utfordringer.includes(u)));
-  const utvalg = [...passer, ...hjelper];
+  const utvalg = medEkstraOrd(passer, hjelper);
   const kandidater = utvalg.length > 0 ? utvalg : ordliste;
   const ord = kandidater[dag % kandidater.length];
 
@@ -460,6 +460,27 @@ export function dagensOrd(dato: Date = new Date(), maal?: MaalSvar): DagensOrd {
   const eksempel = (tema && ord.eksempler[tema]) ?? ord.eksempel;
 
   return { ord, eksempel, tema, tips: tipsFor(utfordringer, dag) };
+}
+
+/**
+ * Legger hvert ekstra ord inn én gang til i listen, spredt utover og aldri ved siden av
+ * seg selv (heller ikke mellom siste og første plass, siden listen går i ring).
+ * Da får man aldri samme ord to dager på rad.
+ */
+function medEkstraOrd(liste: Ord[], ekstra: Ord[]): Ord[] {
+  const utvalg = [...liste];
+  ekstra.forEach((ord, j) => {
+    const start = Math.round(((j + 1) * utvalg.length) / (ekstra.length + 1));
+    for (let forsok = 0; forsok < utvalg.length; forsok++) {
+      const i = (start + forsok) % utvalg.length;
+      const forrige = utvalg[(i - 1 + utvalg.length) % utvalg.length];
+      if (forrige !== ord && utvalg[i] !== ord) {
+        utvalg.splice(i, 0, ord);
+        return;
+      }
+    }
+  });
+  return utvalg;
 }
 
 /** Bytter mellom rådene for brukerens utfordringer fra dag til dag. */
