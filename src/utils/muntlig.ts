@@ -3,6 +3,7 @@
  * (`src/app/api/tilbakemelding+api.ts`) og regner ut enkle tall om talen.
  */
 
+import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
 
 import type { Ord } from '@/data/ord';
@@ -30,8 +31,9 @@ export async function sendOpptak(uri: string, ord: Ord, oppgave?: string): Promi
     const blob = await (await fetch(uri)).blob();
     skjema.append('lyd', blob, 'opptak.webm');
   } else {
-    // På mobil kan React Native sende filen direkte fra adressen.
-    skjema.append('lyd', { uri, name: 'opptak.m4a', type: 'audio/m4a' } as unknown as Blob);
+    // På mobil leser vi filen med expo-file-system. Expo sin fetch godtar ikke
+    // React Native-varianten `{ uri, name, type }` i FormData, men en `File` går fint.
+    skjema.append('lyd', new File(uri) as unknown as Blob);
   }
   skjema.append('ord', ord.ord);
   skjema.append('betydning', ord.betydning);
@@ -40,7 +42,9 @@ export async function sendOpptak(uri: string, ord: Ord, oppgave?: string): Promi
   let svar: Response;
   try {
     svar = await fetch('/api/tilbakemelding', { method: 'POST', body: skjema });
-  } catch {
+  } catch (e) {
+    // Vises i terminalen der `npx expo start` kjører, så det er lettere å finne feilen.
+    console.warn('Sending av opptak feilet', e);
     throw new Error('Fikk ikke kontakt med serveren. Sjekk at appen kjører fra `npx expo start`.');
   }
   const json = (await svar.json().catch(() => ({}))) as Partial<TilbakemeldingSvar> & { feil?: string };
