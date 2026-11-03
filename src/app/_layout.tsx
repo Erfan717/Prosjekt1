@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { Colors } from '@/constants/theme';
 import { BrukerProvider, useBruker } from '@/hooks/bruker';
+import { FremgangProvider } from '@/hooks/fremgang';
 
 // Appen er alltid mørk. Vi bygger på React Navigation sitt mørke tema med våre farger.
 const morktTema: Theme = {
@@ -24,8 +25,10 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={morktTema}>
       <BrukerProvider>
-        <AnimatedSplashOverlay />
-        <Navigasjon />
+        <FremgangProvider>
+          <AnimatedSplashOverlay />
+          <Navigasjon />
+        </FremgangProvider>
       </BrukerProvider>
     </ThemeProvider>
   );
@@ -48,6 +51,7 @@ function Navigasjon() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark.background } }}>
       <Stack.Protected guard={innlogget && harMaal}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="ovelse" />
       </Stack.Protected>
       <Stack.Protected guard={innlogget && !harMaal}>
         <Stack.Screen name="maal" />

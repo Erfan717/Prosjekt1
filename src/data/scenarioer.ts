@@ -1,6 +1,6 @@
 /**
  * Scenarioer brukeren kan øve på.
- * I neste steg kobler vi hvert scenario til opptak og AI-tilbakemelding.
+ * Hvert scenario åpner øvingsskjermen (`src/app/ovelse.tsx`). Senere kan vi legge til opptak og muntlig tilbakemelding.
  */
 
 export type Scenario = {
