@@ -31,19 +31,19 @@ export default function OvSkjerm() {
       <Topptekst
         etikett="Øv"
         tittel="Finn stemmen din"
-        tekst="Bruk dagens ord i en setning eller i en situasjon, og få tilbakemelding på formuleringen."
+        tekst="Si svaret høyt med dagens ord, og få tilbakemelding på hvordan du sa det."
       />
 
       <Pressable
         onPress={() => router.push('/ovelse')}
         accessibilityRole="button"
-        accessibilityLabel={`Skriv en setning med ${ord.ord}`}
+        accessibilityLabel={`Si en setning med ${ord.ord}`}
         style={({ pressed }) => pressed && styles.trykket}>
         <Kort gradientCss={Gradients.helt}>
           <ThemedText type="eyebrow" style={styles.lysEtikett}>
             Rask øvelse · 1 min
           </ThemedText>
-          <ThemedText type="subtitle">Skriv en setning med «{ord.ord}»</ThemedText>
+          <ThemedText type="subtitle">Si en setning med «{ord.ord}»</ThemedText>
           <ThemedText type="small" style={styles.lysTekst}>
             {ord.betydning}
           </ThemedText>
@@ -72,7 +72,7 @@ export default function OvSkjerm() {
                 <ThemedText type="subtitle" style={styles.tittel}>
                   {scenario.tittel}
                 </ThemedText>
-                <Brikke>Skriv</Brikke>
+                <Brikke>Snakk</Brikke>
               </View>
               <ThemedText type="small" themeColor="textSecondary">
                 {scenario.beskrivelse}
