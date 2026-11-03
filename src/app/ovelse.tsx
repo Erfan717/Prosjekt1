@@ -93,6 +93,7 @@ export default function OvelseSkjerm() {
   const [{ ord, eksempel }] = useState(() => dagensOrd(new Date(), bruker?.maal));
 
   const [modus, setModus] = useState<'snakk' | 'skriv'>('snakk');
+  const [tarOpp, setTarOpp] = useState(false);
   const [tekst, setTekst] = useState('');
   const [fokus, setFokus] = useState(false);
   const [resultat, setResultat] = useState<Visning | null>(null);
@@ -169,6 +170,7 @@ export default function OvelseSkjerm() {
                 eksempel={eksempel}
                 scenario={scenario}
                 onStart={() => setResultat(null)}
+                onTarOpp={setTarOpp}
                 onResultat={visResultat}
               />
             ) : (
@@ -215,18 +217,21 @@ export default function OvelseSkjerm() {
               </Pressable>
             ) : null}
 
-            <Pressable
-              onPress={() => {
-                setModus((m) => (m === 'snakk' ? 'skriv' : 'snakk'));
-                setResultat(null);
-              }}
-              hitSlop={8}
-              accessibilityRole="button"
-              style={styles.byttModus}>
-              <ThemedText type="smallBold" themeColor="textMuted">
-                {modus === 'snakk' ? 'Kan du ikke snakke nå? Skriv i stedet' : '← Tilbake til å snakke'}
-              </ThemedText>
-            </Pressable>
+            {/* Skjules mens du tar opp, så opptaket ikke forsvinner midt i. */}
+            {tarOpp ? null : (
+              <Pressable
+                onPress={() => {
+                  setModus((m) => (m === 'snakk' ? 'skriv' : 'snakk'));
+                  setResultat(null);
+                }}
+                hitSlop={8}
+                accessibilityRole="button"
+                style={styles.byttModus}>
+                <ThemedText type="smallBold" themeColor="textMuted">
+                  {modus === 'snakk' ? 'Kan du ikke snakke nå? Skriv i stedet' : '← Tilbake til å snakke'}
+                </ThemedText>
+              </Pressable>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -239,11 +244,12 @@ type MuntligProps = {
   eksempel: string;
   scenario?: Scenario;
   onStart: () => void;
+  onTarOpp: (tarOpp: boolean) => void;
   onResultat: (visning: Visning) => void;
 };
 
 /** Stor mikrofonknapp: trykk for å snakke, trykk igjen for å stoppe og få tilbakemelding. */
-function Muntlig({ ord, eksempel, scenario, onStart, onResultat }: MuntligProps) {
+function Muntlig({ ord, eksempel, scenario, onStart, onTarOpp, onResultat }: MuntligProps) {
   const opptaker = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const opptak = useAudioRecorderState(opptaker, 250);
   const [status, setStatus] = useState<'klar' | 'tar-opp' | 'analyserer'>('klar');
@@ -287,7 +293,7 @@ function Muntlig({ ord, eksempel, scenario, onStart, onResultat }: MuntligProps)
         svar.ai
           ? fraAi(svar.ai, svar.transkripsjon, tempo)
           : fraLokal(
-              giTilbakemelding(svar.transkripsjon, ord, scenario ? 'scenario' : 'setning'),
+              giTilbakemelding(svar.transkripsjon, ord, scenario ? 'scenario' : 'setning', 'tale'),
               eksempel,
               svar.transkripsjon,
               tempo,
@@ -306,6 +312,21 @@ function Muntlig({ ord, eksempel, scenario, onStart, onResultat }: MuntligProps)
   useEffect(() => {
     if (status === 'tar-opp' && varighet >= MAKS_OPPTAK_MS) stoppRef.current();
   }, [status, varighet]);
+
+  useEffect(() => onTarOpp(status === 'tar-opp'), [status, onTarOpp]);
+
+  // Går du ut av skjermen midt i et opptak, kastes opptaket og mikrofonen slås av.
+  const tarOppRef = useRef(false);
+  tarOppRef.current = status === 'tar-opp';
+  useEffect(
+    () => () => {
+      if (tarOppRef.current) {
+        opptaker.stop().catch(() => {});
+        setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+      }
+    },
+    [opptaker],
+  );
 
   const tarOpp = status === 'tar-opp';
   const analyserer = status === 'analyserer';

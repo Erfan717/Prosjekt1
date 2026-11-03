@@ -33,7 +33,13 @@ Brukeren har sagt noe høyt, og du får det som tekst fra tale-til-tekst (det ka
 Gi kort tilbakemelding på norsk bokmål om hvordan det ble sagt: ordvalg, om dagens ord ble brukt naturlig, struktur, tydelighet og fyllord.
 Vær konkret og oppmuntrende, og snakk direkte til brukeren med «du». Hold hvert punkt til én setning.`;
 
+/** Største opptak vi tar imot. To minutter tale er rundt 2 MB. */
+const MAKS_BYTES = 10 * 1024 * 1024;
+
 export async function POST(request: Request): Promise<Response> {
+  if (Number(request.headers.get('content-length') ?? 0) > MAKS_BYTES) {
+    return Response.json({ feil: 'Opptaket er for langt.' }, { status: 413 });
+  }
   const openaiNokkel = process.env.OPENAI_API_KEY;
   if (!openaiNokkel) {
     return Response.json(
@@ -52,6 +58,9 @@ export async function POST(request: Request): Promise<Response> {
   const lyd = skjema.get('lyd');
   if (!(lyd instanceof Blob) || lyd.size === 0) {
     return Response.json({ feil: 'Fant ikke lydopptaket.' }, { status: 400 });
+  }
+  if (lyd.size > MAKS_BYTES) {
+    return Response.json({ feil: 'Opptaket er for langt.' }, { status: 413 });
   }
   const ord = String(skjema.get('ord') ?? '');
   const betydning = String(skjema.get('betydning') ?? '');
@@ -99,8 +108,6 @@ async function taleTilTekst(lyd: Blob, nokkel: string): Promise<string> {
   return json.text ?? '';
 }
 
-const klient = new Anthropic();
-
 async function aiTilbakemelding(inn: {
   transkripsjon: string;
   ord: string;
@@ -113,6 +120,8 @@ async function aiTilbakemelding(inn: {
     `Dette sa brukeren:\n"""\n${inn.transkripsjon}\n"""`,
   ].join('\n\n');
 
+  // Lages her, etter at POST har sjekket at nøkkelen finnes.
+  const klient = new Anthropic();
   const svar = await klient.beta.messages.parse({
     model: 'claude-opus-5-5',
     max_tokens: 4000,

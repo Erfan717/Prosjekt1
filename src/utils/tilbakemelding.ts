@@ -78,7 +78,17 @@ function setninger(tekst: string): string[] {
     .filter((s) => s.length > 0);
 }
 
-export function giTilbakemelding(tekst: string, ord: Ord, type: Ovelsestype): Tilbakemelding {
+/**
+ * @param kilde «tale» når teksten kommer fra tale-til-tekst. Da sjekker vi ikke tegnsetting og
+ *   stor forbokstav, siden det er tale-til-tekst som har satt dem, ikke du.
+ */
+export function giTilbakemelding(
+  tekst: string,
+  ord: Ord,
+  type: Ovelsestype,
+  kilde: 'skrift' | 'tale' = 'skrift',
+): Tilbakemelding {
+  const skrev = kilde === 'tale' ? 'sa' : 'skrev';
   const renTekst = tekst.trim();
   const ordliste = tilOrd(renTekst);
   const bra: Punkt[] = [];
@@ -104,7 +114,7 @@ export function giTilbakemelding(tekst: string, ord: Ord, type: Ovelsestype): Ti
   // 2. Enkle ord som dagens ord kan erstatte.
   const erstattet = ord.erstatter.filter((e) => inneholderFrase(ordliste, e));
   for (const e of erstattet.slice(0, 1)) {
-    tips.push({ type: 'tips', tekst: `Du skrev «${e}». Her kan «${ord.ord}» passe bedre.` });
+    tips.push({ type: 'tips', tekst: `Du ${skrev} «${e}». Her kan «${ord.ord}» passe bedre.` });
   }
 
   // 3. Andre vage ord.
@@ -123,7 +133,7 @@ export function giTilbakemelding(tekst: string, ord: Ord, type: Ovelsestype): Ti
   if (veldigAntall >= 2) {
     tips.push({
       type: 'tips',
-      tekst: `Du skrev «veldig» ${veldigAntall} ganger. Et sterkere ord sier mer enn «veldig» + et svakt ord.`,
+      tekst: `Du ${skrev} «veldig» ${veldigAntall} ganger. Et sterkere ord sier mer enn «veldig» + et svakt ord.`,
     });
   }
 
@@ -157,11 +167,11 @@ export function giTilbakemelding(tekst: string, ord: Ord, type: Ovelsestype): Ti
     tips.push({ type: 'tips', tekst: 'En av setningene er veldig lang. Del den opp, så blir den lettere å følge.' });
   }
 
-  // 7. Stor forbokstav og tegn til slutt.
-  if (renTekst.length > 0 && !/^[A-ZÆØÅÉ0-9«"]/.test(renTekst)) {
+  // 7. Stor forbokstav og tegn til slutt (bare når du har skrevet selv).
+  if (kilde === 'skrift' && renTekst.length > 0 && !/^[A-ZÆØÅÉ0-9«"]/.test(renTekst)) {
     tips.push({ type: 'tips', tekst: 'Begynn med stor forbokstav.' });
   }
-  if (renTekst.length > 0 && !/[.!?»"]$/.test(renTekst)) {
+  if (kilde === 'skrift' && renTekst.length > 0 && !/[.!?»"]$/.test(renTekst)) {
     tips.push({ type: 'tips', tekst: 'Avslutt med punktum, utropstegn eller spørsmålstegn.' });
   }
 
