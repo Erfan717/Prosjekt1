@@ -8,28 +8,29 @@ import '@/global.css';
 import { Platform } from 'react-native';
 
 /**
- * Mørk, rolig palett inspirert av «personal growth»-apper som Opal og Soundscape.
+ * «Midnatt»: nesten svart med et snev av marineblå.
+ * Én farge i ulike nyanser, for et rent og minimalistisk uttrykk.
  * Appen er alltid mørk, så lys og mørk modus bruker de samme fargene.
  */
 const Palett = {
-  /** Dyp blekk-lilla bakgrunn bak alt */
-  background: '#0B0A14',
-  /** Glass-kort: litt lysere enn bakgrunnen */
-  backgroundElement: 'rgba(255, 255, 255, 0.05)',
-  backgroundSelected: 'rgba(255, 255, 255, 0.12)',
+  /** Nesten svart bakgrunn bak alt */
+  background: '#0A0C10',
+  /** Kort: en nyanse lysere enn bakgrunnen */
+  backgroundElement: '#12151B',
+  backgroundSelected: '#1C2230',
   /** Tynn kant rundt kort */
-  border: 'rgba(255, 255, 255, 0.08)',
-  text: '#F4F1FA',
-  textSecondary: '#A9A4BF',
-  textMuted: '#6F6A87',
-  /** Hovedaksent: myk lavendel */
-  accent: '#B9A6FF',
-  /** Varm aksent: fersken, brukes til fremgang og streaks */
-  accentWarm: '#FFB38A',
-  /** Rolig aksent: mint, brukes til øving */
-  accentCalm: '#7FD8C4',
+  border: 'rgba(220, 227, 240, 0.08)',
+  text: '#EEF1F7',
+  textSecondary: '#9DA5B4',
+  textMuted: '#626A7A',
+  /** Hovedaksent: lys blågrå */
+  accent: '#DCE3F0',
+  /** Fremgang og streaks: samme blågrå familie, litt mørkere */
+  accentWarm: '#B8C3D8',
+  /** Øving: samme blågrå familie, enda litt mørkere */
+  accentCalm: '#97A4BE',
   /** Tekst oppå aksentfarger */
-  onAccent: '#14111F',
+  onAccent: '#0A0C10',
 } as const;
 
 export const Colors = {
@@ -39,17 +40,18 @@ export const Colors = {
 
 /**
  * Gradienter skrevet som CSS. Brukes via `gradient()` i `@/components/gradient`.
+ * Alle holder seg i samme marineblå nyanse.
  */
 export const Gradients = {
-  /** Svak lilla glød øverst på skjermen som toner ut i mørket */
+  /** Svak blå glød øverst på skjermen som toner ut i mørket */
   skjerm:
-    'radial-gradient(120% 60% at 20% 0%, rgba(124, 92, 255, 0.35) 0%, rgba(124, 92, 255, 0) 70%), radial-gradient(90% 50% at 100% 15%, rgba(255, 140, 120, 0.16) 0%, rgba(255, 140, 120, 0) 70%)',
-  /** Hovedkort med lavendel → rosa → fersken */
-  helt: 'linear-gradient(135deg, #3B2A78 0%, #5B3A8C 45%, #8A4F7D 75%, #B8687A 100%)',
-  /** Rolig mint-blå for øving */
-  rolig: 'linear-gradient(135deg, #12352F 0%, #1C3F4F 100%)',
-  /** Varm for fremgang */
-  varm: 'linear-gradient(135deg, #4A2A3E 0%, #7A3F3A 60%, #A65A3A 100%)',
+    'radial-gradient(120% 60% at 20% 0%, rgba(52, 64, 90, 0.45) 0%, rgba(52, 64, 90, 0) 70%)',
+  /** Hovedkort */
+  helt: 'linear-gradient(135deg, #1C2230 0%, #34405A 100%)',
+  /** Rolig kort for øving */
+  rolig: 'linear-gradient(135deg, #151A24 0%, #283247 100%)',
+  /** Kort for fremgang */
+  varm: 'linear-gradient(135deg, #181D29 0%, #2E3950 100%)',
 } as const;
 
 export const Radius = {
