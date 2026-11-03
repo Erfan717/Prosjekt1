@@ -146,7 +146,9 @@ export function giTilbakemelding(tekst: string, ord: Ord, type: Ovelsestype): Ti
   } else {
     if (ordliste.length < 15) {
       tips.push({ type: 'tips', tekst: 'Svaret er kort. Prøv to–tre setninger: poenget, et eksempel og en avslutning.' });
-    } else if (deler.length >= 2) {
+    } else if (deler.length < 2) {
+      tips.push({ type: 'tips', tekst: 'Del svaret i to–tre setninger, så blir det lettere å følge.' });
+    } else {
       bra.push({ type: 'bra', tekst: `Du bygger opp svaret over ${deler.length} setninger. Det gjør det lett å følge.` });
     }
   }

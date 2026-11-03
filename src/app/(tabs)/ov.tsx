@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AppState, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Brikke, Kort, Skjerm, Topptekst } from '@/components/ui';
@@ -11,7 +12,17 @@ import { scenarioer } from '@/data/scenarioer';
 const aksenter = [Colors.dark.accent, Colors.dark.accentCalm, Colors.dark.accentWarm];
 
 export default function OvSkjerm() {
-  const ord = dagensOrd();
+  const [dato, setDato] = useState(() => new Date());
+
+  // Oppdater datoen når appen kommer tilbake i forgrunnen, så kortet viser samme ord som øvelsen.
+  useEffect(() => {
+    const abonnement = AppState.addEventListener('change', (status) => {
+      if (status === 'active') setDato(new Date());
+    });
+    return () => abonnement.remove();
+  }, []);
+
+  const ord = dagensOrd(dato);
 
   return (
     <Skjerm>
