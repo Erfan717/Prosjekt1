@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { LartOrdKnapp } from '@/components/lart-ord-knapp';
 import { Brikke, Kort, Skjerm } from '@/components/ui';
 import { Colors, Gradients, Spacing } from '@/constants/theme';
 import { dagensOrd } from '@/data/ord';
@@ -74,6 +75,8 @@ export default function DagensOrdSkjerm() {
           ))}
         </View>
       </Kort>
+
+      <LartOrdKnapp ord={ord.ord} />
     </Skjerm>
   );
 }

@@ -1,26 +1,51 @@
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AppState, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Kort, Skjerm, Topptekst } from '@/components/ui';
 import { Colors, Gradients, Radius, Spacing } from '@/constants/theme';
+import { useFremgang } from '@/hooks/fremgang';
+import { dagerPaRad, datoNokkel, denneUken, lengsteRekke } from '@/lib/streak';
 
-// Foreløpig faste tall. Senere henter vi dem fra lagret fremgang.
-const dagerPaRad = 0;
-const statistikk = [
-  { etikett: 'Ord lært', verdi: 0, farge: Colors.dark.accent },
-  { etikett: 'Øvelser fullført', verdi: 0, farge: Colors.dark.accentCalm },
-];
 const ukedager = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
-// Hvilke dager denne uken du har øvd (mandag først).
-const ovdDager = [false, false, false, false, false, false, false];
+
+/** Kort tekst under tallet som forteller hva du bør gjøre i dag. */
+function streakTekst(rekke: number, gjortIDag: boolean): string {
+  if (gjortIDag) return 'Bra! Dagen er med i rekken.';
+  if (rekke > 0) return 'Lær dagens ord for å holde rekken i gang.';
+  return 'Lær dagens ord for å starte en ny rekke.';
+}
 
 export default function FremgangSkjerm() {
+  const { aktiveDager, laerteOrd, ovelserFullfort } = useFremgang();
+  const [iDag, setIDag] = useState(() => new Date());
+
+  // Regn ut på nytt når appen kommer tilbake i forgrunnen, i tilfelle det har blitt en ny dag.
+  useEffect(() => {
+    const abonnement = AppState.addEventListener('change', (status) => {
+      if (status === 'active') setIDag(new Date());
+    });
+    return () => abonnement.remove();
+  }, []);
+
+  const rekke = dagerPaRad(aktiveDager, iDag);
+  const gjortIDag = aktiveDager.includes(datoNokkel(iDag));
+  const uke = denneUken(aktiveDager, iDag);
+  // Mandag = 0, så vi kan markere dagen i dag i ukeoversikten.
+  const idagIndeks = (iDag.getDay() + 6) % 7;
+
+  const statistikk = [
+    { etikett: 'Ord lært', verdi: laerteOrd.length, farge: Colors.dark.accent },
+    { etikett: 'Øvelser fullført', verdi: ovelserFullfort, farge: Colors.dark.accentCalm },
+    { etikett: 'Lengste rekke', verdi: lengsteRekke(aktiveDager), farge: Colors.dark.accentWarm },
+  ];
+
   return (
     <Skjerm>
       <Topptekst
         etikett="Fremgang"
         tittel="Litt hver dag"
-        tekst="Her ser du snart hvor mange nye ord du har tatt i bruk."
+        tekst="Lær dagens ord eller fullfør en øvelse, så teller dagen."
       />
 
       <Kort gradientCss={Gradients.varm}>
@@ -28,13 +53,18 @@ export default function FremgangSkjerm() {
           Dager på rad
         </ThemedText>
         <ThemedText type="stat" style={styles.stortTall}>
-          {dagerPaRad}
+          {rekke}
+        </ThemedText>
+        <ThemedText type="small" style={styles.dagTekst}>
+          {streakTekst(rekke, gjortIDag)}
         </ThemedText>
         <View style={styles.uke}>
           {ukedager.map((dag, i) => (
             <View key={i} style={styles.dag}>
-              <View style={[styles.dagPrikk, ovdDager[i] && styles.dagPrikkAktiv]} />
-              <ThemedText type="small" style={styles.dagTekst}>
+              <View
+                style={[styles.dagPrikk, uke[i] && styles.dagPrikkAktiv, i === idagIndeks && styles.dagPrikkIDag]}
+              />
+              <ThemedText type="small" style={[styles.dagTekst, i === idagIndeks && styles.dagTekstIDag]}>
                 {dag}
               </ThemedText>
             </View>
@@ -89,15 +119,24 @@ const styles = StyleSheet.create({
   dagPrikkAktiv: {
     backgroundColor: Colors.dark.accentWarm,
   },
+  dagPrikkIDag: {
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+  },
   dagTekst: {
     color: 'rgba(255, 255, 255, 0.7)',
   },
+  dagTekstIDag: {
+    color: '#FFFFFF',
+    fontWeight: 600,
+  },
   rutenett: {
     flexDirection: 'row',
-    gap: Spacing.three,
+    gap: Spacing.two,
   },
   rute: {
     flex: 1,
+    padding: Spacing.three,
     gap: Spacing.one,
   },
   fotnote: {
