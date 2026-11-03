@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useBruker } from '@/hooks/bruker';
 import { gradient } from '@/components/gradient';
 import { ThemedText } from '@/components/themed-text';
 import { Brikke, Kort, Topptekst } from '@/components/ui';
@@ -29,7 +30,9 @@ export default function OvelseSkjerm() {
   const { scenario: scenarioId } = useLocalSearchParams<{ scenario?: string }>();
   const scenario = scenarioer.find((s) => s.id === scenarioId);
   const type = scenario ? 'scenario' : 'setning';
-  const [ord] = useState(() => dagensOrd());
+  const { bruker } = useBruker();
+  // Samme ord som på «Dagens ord», tilpasset brukerens mål.
+  const [{ ord, eksempel }] = useState(() => dagensOrd(new Date(), bruker?.maal));
 
   const [tekst, setTekst] = useState('');
   const [fokus, setFokus] = useState(false);
@@ -110,7 +113,7 @@ export default function OvelseSkjerm() {
               />
             </View>
 
-            {resultat ? <Resultat resultat={resultat} eksempel={ord.eksempel} /> : null}
+            {resultat ? <Resultat resultat={resultat} eksempel={eksempel} /> : null}
 
             <Pressable
               onPress={sjekk}
