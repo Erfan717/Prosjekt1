@@ -49,7 +49,7 @@ export default function RegistrerSkjerm() {
   function sendInn() {
     setHarProvd(true);
     if (Object.keys(valider(navn, epost, passord)).length > 0) return;
-    // TODO: Lagre brukeren i en ekte backend (f.eks. Supabase) og vis spørsmålene om mål etterpå.
+    // TODO: Lagre brukeren i en ekte backend (f.eks. Supabase). Målspørsmålene vises automatisk etterpå.
     registrer({ navn: navn.trim(), epost: epost.trim().toLowerCase() });
   }
 

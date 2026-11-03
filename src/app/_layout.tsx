@@ -32,17 +32,21 @@ export default function RootLayout() {
 }
 
 /**
- * Viser registreringen til man har en bruker, og selve appen (fanene) etterpå.
+ * Rekkefølgen er: registrering → målspørsmål → selve appen (fanene).
  * `Stack.Protected` sender deg automatisk til riktig side når `guard` endrer seg.
  */
 function Navigasjon() {
   const { bruker } = useBruker();
   const innlogget = bruker !== null;
+  const harMaal = bruker?.maal !== undefined;
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark.background } }}>
-      <Stack.Protected guard={innlogget}>
+      <Stack.Protected guard={innlogget && harMaal}>
         <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={innlogget && !harMaal}>
+        <Stack.Screen name="maal" />
       </Stack.Protected>
       <Stack.Protected guard={!innlogget}>
         <Stack.Screen name="registrer" />

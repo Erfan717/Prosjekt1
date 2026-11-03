@@ -1,14 +1,19 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
+import type { MaalSvar } from '@/data/maal-sporsmal';
+
 /** Brukeren som er registrert på denne enheten. */
 export type Bruker = {
   navn: string;
   epost: string;
+  /** Svarene på målspørsmålene etter registrering. Mangler til man har svart. */
+  maal?: MaalSvar;
 };
 
 type BrukerKontekst = {
   bruker: Bruker | null;
   registrer: (bruker: Bruker) => void;
+  lagreMaal: (maal: MaalSvar) => void;
   loggUt: () => void;
 };
 
@@ -28,6 +33,7 @@ export function BrukerProvider({ children }: { children: ReactNode }) {
     () => ({
       bruker,
       registrer: (ny) => setBruker(ny),
+      lagreMaal: (maal) => setBruker((naa) => (naa ? { ...naa, maal } : naa)),
       loggUt: () => setBruker(null),
     }),
     [bruker],
